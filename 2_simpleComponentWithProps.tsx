@@ -35,6 +35,9 @@ function SimpleComponentWithProps3(data: IData) {
   return <div>Hello {data.adjectivum} world!</div>;
 }
 
+// id muze byt nastaveno i pro funkcni komponenty - v produkcnim buildu bude jmeno funkce zkraceno
+SimpleComponentWithProps3.id = "SimpleComponentWithProps3";
+
 //-----------------------------------
 
 const SimpleComponentWithProps2NoTsx = b.component(SimpleComponentWithProps2);
