@@ -3,9 +3,9 @@
 
 
 bobril@*, bobril@^11.4.1:
-  version "11.4.2"
-  resolved "https://registry.yarnpkg.com/bobril/-/bobril-11.4.2.tgz#e2fcc1ca835ba995a9da126a8558383f6f222a33"
-  integrity sha512-rhowLjkUtNFC2TDQsz4S3m3rMpadv1/Q8/Ld6tvYFMK+azPSaM2Rh/IenNLMjyGuZs7KdO8smHCjADORgUZzbA==
+  version "11.4.3"
+  resolved "https://registry.yarnpkg.com/bobril/-/bobril-11.4.3.tgz#1661f34f7552d5486f7ed0e7189de8f08e87c7c3"
+  integrity sha512-jY1IbiRsBMcj5nPO8M+dJ1OQ2pQdHPNpEDITI7zipbGb5NM91DVoMcQSWKcClLuqMpKe1qsq3ez5qQeBnvPixw==
 
 bobx@^0.27.1:
   version "0.27.1"
