@@ -76,5 +76,9 @@ TSX:
 - `useRef`
   - vysledek lze pouzit jako ref a nasledne v `.current` dostaneme posledni hodnotu
   - nemusi se pouzivat jen na nody, lze persistovat libovolnou hodnotu
+- `useObservable` (bobx)
+  - vrati `IProp`, podobna `useState`, ale je to rovnou hluboce observovatelna hodnota/objekt.
+- `useComputed` (bobx)
+  - memoizovana funkce ktera se automaticky prepocitava pokud se zmeni pouzite observable hodnoty ci funkce.
 
 podrobnejsi popis: https://reactjs.org/docs/hooks-reference.html

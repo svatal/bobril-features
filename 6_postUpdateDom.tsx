@@ -6,6 +6,8 @@ interface ICtx extends b.IBobrilCtx {
   width: number;
 }
 
+// using "ref" is not needed for root element - simple b.getDomNode(ctx.me) would work too.
+
 const WidthGetter1 = b.createVirtualComponent({
   id: "widthGetter",
   init(ctx: ICtx) {
@@ -68,22 +70,60 @@ function WidthGetter3() {
 }
 
 /*
-Protoze z DOMu jen cteme, ve skutecnosti by byl lepsi useEffect. useLayoutEffect se od nej lisi v jedinem aspektu - pousti se ve chvili, 
-kdy browser jeste nestihne prekreslit takze nase updaty se zohledni ihned. Takze abych ho trochu ospravedlnil, pridal jsem update window title :)
- */
+Because we showing width usage of useLayoutEffect is correct, because if we would like blink of initial zero value. 
+So useEffect we will show on changing browser title which is not part of DOM that Bobril controls.
+*/
 
 function WidthGetter3Bonus() {
   const [width, setWidth] = b.useState(0);
   const ref = b.useRef<b.IBobrilCacheNode>();
-  const origPageTitle = b.useState(""); //
   b.useLayoutEffect(() => {
     const elem = b.getDomNode(ref.current) as HTMLElement;
     const width = elem.getBoundingClientRect().width;
     setWidth(width);
-    if (origPageTitle() === "") origPageTitle(document.title); //
-    document.title = `width: ${width}`; //
   });
-  b.useLayoutEffect(() => () => (document.title = origPageTitle()), []); // restore original page title
+  // clear separation of concerns to individual hooks
+  b.useEffect(() => {
+    const backupTitle = document.title;
+    document.title = `width: ${width}`;
+    return () => {
+      // restore original page title
+      document.title = backupTitle;
+    };
+  }, [width]); // we need to change title only when width changes
+  return <div ref={ref}>{width}</div>;
+}
+
+//-----------------------------------
+
+// Extract features to custom hooks
+
+function useWidthOfRef() {
+  const [width, setWidth] = b.useState(0);
+  const ref = b.useRef<b.IBobrilCacheNode>();
+  b.useLayoutEffect(() => {
+    const elem = b.getDomNode(ref.current) as HTMLElement;
+    const width = elem.getBoundingClientRect().width;
+    setWidth(width);
+  });
+  return [width, ref] as const;
+}
+
+function useBrowserTitle(title: string) {
+  b.useEffect(() => {
+    const backupTitle = document.title;
+    document.title = title;
+    return () => {
+      // restore original page title
+      document.title = backupTitle;
+    };
+  }, [title]);
+}
+
+function WidthGetter3Bonus2() {
+  // so clean and reusable
+  const [width, ref] = useWidthOfRef();
+  useBrowserTitle(`width: ${width}`);
   return <div ref={ref}>{width}</div>;
 }
 
@@ -98,6 +138,7 @@ export const options: IOptions = {
     [
       "functional useLayoutEffect, useRef, window title",
       b.component(WidthGetter3Bonus)
-    ]
+    ],
+    ["functional custom hooks", b.component(WidthGetter3Bonus2)]
   ]
 };

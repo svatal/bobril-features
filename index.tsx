@@ -21,6 +21,7 @@ function App() {
   const type = b.useState<number>(0);
   const subType = b.useState<number>(0);
   const subTypeOptions = options[type()].options;
+  if (subType() >= subTypeOptions.length) subType(0);
   return (
     <div>
       <div style={{ float: "left" }}>
@@ -32,7 +33,7 @@ function App() {
                 return false;
               }}
             >
-              <input type="radio" name="type" />
+              <input type="radio" name="type" value={i == type()} />
               {o.name}
             </label>
             <br />
@@ -48,7 +49,7 @@ function App() {
                 return false;
               }}
             >
-              <input type="radio" name="subType" />
+              <input type="radio" name="subType" value={i == subType()} />
               {o[0]}
             </label>
             <br />
