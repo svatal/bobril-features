@@ -1,5 +1,5 @@
 import * as b from "bobril";
-import { observable, useComputed } from "bobx";
+import { observable } from "bobx";
 import { IOptions } from "./options";
 
 function StateHook() {

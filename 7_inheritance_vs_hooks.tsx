@@ -1,7 +1,7 @@
-/*
 import * as b from "bobril";
 import { observable } from "bobx";
 import { IOptions } from "./options";
+import {IBobrilCacheNode} from "bobril";
 
 type Omit<T, K> = Pick<T, Exclude<keyof T, K>>
 
@@ -16,34 +16,54 @@ interface Measure {
     measure(me: b.IBobrilCacheNode): WidthHeight;
 }
 
+interface IContext extends b.IBobrilCtx {
+    size: WidthHeight;
+}
 // dopsat
+const Mixed = b.createComponent({
+    render(ctx: IContext, me: b.IBobrilNodeCommon) {
+        me.children = (
+            <div style={{width: "100%"}}>
+                <h2>Mixin</h2>
+                <div>Measured div</div>
+                <div>width: {ctx.size.width}</div>
+            </div>
+        )
+    }
+});
 
-b.createDerivedComponent()
+const Oixin = b.createDerivedComponent(Mixed, {
+    init(ctx: IContext) {
+        ctx.size = {
+            width: 0,
+            height: 0
+        };
+    },
+    postRender(ctx: IContext, me: b.IBobrilCacheNode): void {
+        const { width, height } = (b.getDomNode(me) as Element).getBoundingClientRect();
+        ctx.size.width = width;
+        ctx.size.height = height;
+    }
+});
 
-class Meter implements Measure {
-    @observable.ref
+class Meter extends b.Component  {
+    @observable
     currentSize: WidthHeight = {
         width: 0,
         height: 0
     };
-    measure(me: b.IBobrilCacheNode): WidthHeight {
-        const { width, height } = (b.getDomNode(me) as Element).getBoundingClientRect();
-        return {
-            width,
-            height
-        }
+    postRenderDom() {
+        const { width, height } = (b.getDomNode(this.me) as Element).getBoundingClientRect();
+        this.currentSize.width = width;
+        this.currentSize.height = height;
     }
 }
 
 // change
-class TestComponent extends b.Component implements Measure {
-
+class TestComponent extends b.Component {
+    currentSize: WidthHeight;
     // same as hoc
-    postRenderDom(me: b.IBobrilCacheNode): void {
-        this.currentSize = this.measure(me);
-    }
-
-    measure(me: b.IBobrilCacheNode): WidthHeight {return {width: 0, height: 0}}
+    postRenderDom(): void {}
 
     render() {
         return (
@@ -63,6 +83,10 @@ function applyMixins(derivedCtor: any, baseCtors: any[]) {
             Object.defineProperty(derivedCtor.prototype, name, Object.getOwnPropertyDescriptor(baseCtor.prototype, name));
         });
     });
+}
+
+function OldMixin() {
+    return <Oixin/>
 }
 
 function Mixin() {
@@ -99,18 +123,25 @@ export class TestComponent1 extends Measure1 {
 function withSize<T extends Measure>(Wrapping: b.IComponentFactory<T>) {
     return class WithEmitterHoc extends b.Component<Omit<T, keyof Measure>>{
         // invalidate and measure me not external thing
+        currentSize: WidthHeight = {
+            width: 0,
+            height: 0
+        };
 
-        measure(): WidthHeight {
+        postRenderDom(me: IBobrilCacheNode): void {
             const { width, height } = (b.getDomNode(this.me) as Element).getBoundingClientRect();
-            return {
-                width,
-                height
+            if(width !== this.currentSize.width || height !== this.currentSize.height) {
+                this.currentSize = {
+                    width,
+                    height
+                };
+                b.invalidate(this);
             }
         }
+
         render(data): b.IBobrilNode {
             return <Wrapping
-                size={}
-                measure={() => this.measure()} {...data}/>
+                size={this.currentSize} {...data}/>
         }
     }
 }
@@ -169,7 +200,7 @@ export function TestComponent3() {
                             <div>Measured div</div>
                             <div>width: {width}</div>
                         </div>
-                    )}
+                )}
             </WithSize>
         </>
     )
@@ -207,6 +238,7 @@ function TestComponent4() {
 function Group() {
     return (
         <>
+            <Oixin/>
             <Mixin/>
             <TestComponent1/>
             <TestComponent2/>
@@ -222,4 +254,3 @@ export const options: IOptions = {
         ["", () => <Group/>],
     ]
 };
-*/
