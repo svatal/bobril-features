@@ -1,3 +1,5 @@
+
+// mozna ukazat jen na grafku?
 describe("hooks", () => {
     let hooks = [];
 

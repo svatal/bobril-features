@@ -1,20 +1,11 @@
+/*
 import * as b from "bobril";
 import { observable } from "bobx";
 import { IOptions } from "./options";
 
-
 type Omit<T, K> = Pick<T, Exclude<keyof T, K>>
 
 // mixins
-class Meter implements Measure {
-    measure(me: b.IBobrilCacheNode): WidthHeight {
-        const { width, height } = (b.getDomNode(me) as Element).getBoundingClientRect();
-        return {
-            width,
-            height
-        }
-    }
-}
 
 type WidthHeight = {
     width: number;
@@ -24,13 +15,30 @@ type WidthHeight = {
 interface Measure {
     measure(me: b.IBobrilCacheNode): WidthHeight;
 }
-class TestComponent extends b.Component implements Meter {
+
+// dopsat
+
+b.createDerivedComponent()
+
+class Meter implements Measure {
     @observable.ref
     currentSize: WidthHeight = {
         width: 0,
         height: 0
     };
+    measure(me: b.IBobrilCacheNode): WidthHeight {
+        const { width, height } = (b.getDomNode(me) as Element).getBoundingClientRect();
+        return {
+            width,
+            height
+        }
+    }
+}
 
+// change
+class TestComponent extends b.Component implements Measure {
+
+    // same as hoc
     postRenderDom(me: b.IBobrilCacheNode): void {
         this.currentSize = this.measure(me);
     }
@@ -57,7 +65,7 @@ function applyMixins(derivedCtor: any, baseCtors: any[]) {
     });
 }
 
-export function Mixin() {
+function Mixin() {
     return <TestComponent/>
 }
 
@@ -90,6 +98,8 @@ export class TestComponent1 extends Measure1 {
 // HOC
 function withSize<T extends Measure>(Wrapping: b.IComponentFactory<T>) {
     return class WithEmitterHoc extends b.Component<Omit<T, keyof Measure>>{
+        // invalidate and measure me not external thing
+
         measure(): WidthHeight {
             const { width, height } = (b.getDomNode(this.me) as Element).getBoundingClientRect();
             return {
@@ -99,12 +109,13 @@ function withSize<T extends Measure>(Wrapping: b.IComponentFactory<T>) {
         }
         render(data): b.IBobrilNode {
             return <Wrapping
+                size={}
                 measure={() => this.measure()} {...data}/>
         }
     }
 }
 
-class T extends b.Component<Measure> implements Meter {
+class T extends b.Component<Measure> {
     @observable.ref
     currentSize: WidthHeight = {
         width: 0,
@@ -114,8 +125,6 @@ class T extends b.Component<Measure> implements Meter {
     postRenderDom(me: b.IBobrilCacheNode): void {
         this.currentSize = this.data.measure(me);
     }
-
-    measure(me: b.IBobrilCacheNode): WidthHeight {return {width: 0, height: 0}}
 
     render() {
         return (
@@ -129,6 +138,7 @@ class T extends b.Component<Measure> implements Meter {
 }
 
 export const TestComponent2 = withSize(b.component(T));
+export const TestComponentX = withSize((data: Measure) => <T {...data}/>);
 
 interface IData {
     children(size: WidthHeight): b.IBobrilNode;
@@ -169,8 +179,10 @@ export function TestComponent3() {
 function useMeter(ref: {current: b.IBobrilCacheNode}) {
     const [width, setWidth] = b.useState(0);
     const [height, setHeight] = b.useState(0);
+    //const [size, setSize] = b.useState({width: 0, height: 0});
     b.useLayoutEffect(() => {
         const { width, height } = (b.getDomNode(ref.current) as Element).getBoundingClientRect();
+        // setSize({width, height})
         setWidth(width);
         setHeight(height);
     });
@@ -210,3 +222,4 @@ export const options: IOptions = {
         ["", () => <Group/>],
     ]
 };
+*/

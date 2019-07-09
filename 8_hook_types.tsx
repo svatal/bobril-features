@@ -1,9 +1,11 @@
 import * as b from "bobril";
-import { observable } from "bobx";
+import { observable, useComputed } from "bobx";
 import { IOptions } from "./options";
 
 function StateHook() {
     const [count, setCount] = b.useState(0);
+    const prop = b.useState("ahoj");
+    // IProp version
     return (
         <div onClick={() => {
             setCount(count + 1);
@@ -11,7 +13,14 @@ function StateHook() {
             // setCount(c => c + 1)
             return true;
         }}>
-            {count}
+            <div>
+                {count}
+            </div>
+            <div>
+                <input value={prop}/>
+                <br />
+                {prop()}
+            </div>
         </div>
     )
 }
@@ -24,7 +33,7 @@ function EffectHooks() {
     b.useEffect(() => {
         console.log("effect");
         // dispose
-        return () => console.log("destroy")
+        return () => console.log("destroy");
     }, []);
 
     return (
@@ -48,6 +57,7 @@ function RefHook() {
         </div>
     )
 }
+
 
 class BobxStore {
     @observable
@@ -75,41 +85,47 @@ function MemoHook(data: IData): b.IBobrilNode {
     return b.useMemo(() => <div>{data.x}</div>, [data.x]);
 }
 
+// Advanced concept [context]
 
 // made for cooperate with bobril context api
-const context = b.createContext({
-    text: "nothing"
-});
-function ContextConsumerHook() {
-    const { text } = b.useContext(context);
-    return (
-        <>
-            { text }
-        </>
-    )
-}
+// const context = b.createContext({
+//     //default values
+//     text: "nothing"
+// });
+//
+// function ContextConsumerHook() {
+//     const { text } = b.useContext(context);
+//     return (
+//         <>
+//             { text }
+//         </>
+//     )
+// }
+//
+// function ContextProviderHook(data: {children: b.IBobrilNode}) {
+//     b.useProvideContext(context, {
+//         text: "text from context"
+//     });
+//     return (
+//         <div>
+//             {data.children}
+//         </div>
+//     )
+// }
+//
+// function WrapUp() {
+//     return (
+//         <>
+//             <ContextConsumerHook/>
+//             <ContextProviderHook>
+//                 <ContextConsumerHook/>
+//             </ContextProviderHook>
+//         </>
+//     )
+// }
 
-function ContextProviderHook(data: {children: b.IBobrilNode}) {
-    b.useProvideContext(context, {
-        text: "text from context"
-    });
-    return (
-        <div>
-            {data.children}
-        </div>
-    )
-}
-
-function WrapUp() {
-    return (
-        <>
-            <ContextConsumerHook/>
-            <ContextProviderHook>
-                <ContextConsumerHook/>
-            </ContextProviderHook>
-        </>
-    )
-}
+// useComputed
+// useObservable
 
 function Counter() {
     const [count, setCount] = b.useState(0);
@@ -144,7 +160,6 @@ export const options: IOptions = {
         ["useRef", () => <RefHook/>],
         ["useStore", () => <StoreHook/>],
         ["useMemo", () => <MemoHook x={1}/>],
-        ["useContext", () => <WrapUp/>],
         ["Counter", () => <Counter/>],
     ]
 };
