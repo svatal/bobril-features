@@ -5,6 +5,8 @@ import * as onClick from "./3_simpleComponentWithOnClick";
 import * as ctx from "./4_ctx";
 import * as initDestroy from "./5_init_destroy";
 import * as postUpdateDom from "./6_postUpdateDom";
+import * as evolution from "./7_inheritance_vs_hooks";
+import * as hookTypes from "./8_hook_types";
 
 b.init(() => <App />);
 
@@ -14,7 +16,9 @@ const options = [
   onClick.options,
   ctx.options,
   initDestroy.options,
-  postUpdateDom.options
+  postUpdateDom.options,
+  evolution.options,
+  hookTypes.options,
 ];
 
 function App() {

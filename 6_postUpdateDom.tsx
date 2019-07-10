@@ -98,15 +98,14 @@ function WidthGetter3Bonus() {
 
 // Extract features to custom hooks
 
-function useWidthOfRef() {
+function useWidthOfRef(ref: {current: b.IBobrilCacheNode}) {
   const [width, setWidth] = b.useState(0);
-  const ref = b.useRef<b.IBobrilCacheNode>();
   b.useLayoutEffect(() => {
     const elem = b.getDomNode(ref.current) as HTMLElement;
     const width = elem.getBoundingClientRect().width;
     setWidth(width);
   });
-  return [width, ref] as const;
+  return width;
 }
 
 function useBrowserTitle(title: string) {
@@ -122,7 +121,8 @@ function useBrowserTitle(title: string) {
 
 function WidthGetter3Bonus2() {
   // so clean and reusable
-  const [width, ref] = useWidthOfRef();
+  const ref = b.useRef<b.IBobrilCacheNode>();
+  const width = useWidthOfRef(ref);
   useBrowserTitle(`width: ${width}`);
   return <div ref={ref}>{width}</div>;
 }
