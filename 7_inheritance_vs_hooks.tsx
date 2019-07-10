@@ -1,12 +1,10 @@
 import * as b from "bobril";
 import { observable } from "bobx";
 import { IOptions } from "./options";
-import {IBobrilCacheNode} from "bobril";
 
 type Omit<T, K> = Pick<T, Exclude<keyof T, K>>
 
-// mixins
-
+// problem
 type WidthHeight = {
     width: number;
     height: number;
@@ -20,6 +18,7 @@ interface IContext extends b.IBobrilCtx {
     size: WidthHeight;
 }
 
+// mixins
 const Mixed = b.createComponent({
     render(ctx: IContext, me: b.IBobrilNodeCommon) {
         me.children = (
@@ -32,7 +31,7 @@ const Mixed = b.createComponent({
     }
 });
 
-const OldMixin = b.createDerivedComponent(Mixed, {
+const MeasureMixin: b.IBobrilComponent = {
     init(ctx: IContext) {
         ctx.size = {
             width: 0,
@@ -47,7 +46,13 @@ const OldMixin = b.createDerivedComponent(Mixed, {
             b.invalidate(ctx);
         }
     }
-});
+};
+
+const OldMixin = b.createDerivedComponent(Mixed, MeasureMixin);
+
+function TestOldMixin() {
+    return <OldMixin/>
+}
 
 class Meter extends b.Component  {
     currentSize: WidthHeight;
@@ -85,9 +90,6 @@ function applyMixins(derivedCtor: any, baseCtors: any[]) {
     });
 }
 
-function TestOldMixin() {
-    return <OldMixin/>
-}
 
 function Mixin() {
     return <TestComponent/>
@@ -119,6 +121,8 @@ export class TestComponent1 extends Measure1 {
     }
 }
 
+
+// composition https://github.com/krewi1/blogs
 // HOC
 function withSize<T extends Measured>(Wrapping: b.IComponentFactory<T>) {
     return class WithEmitterHoc extends b.Component<Omit<T, keyof Measured>>{
@@ -128,7 +132,7 @@ function withSize<T extends Measured>(Wrapping: b.IComponentFactory<T>) {
             height: 0
         };
 
-        postRenderDom(me: IBobrilCacheNode): void {
+        postRenderDom(): void {
             const { width, height } = (b.getDomNode(this.me) as Element).getBoundingClientRect();
             if(width !== this.currentSize.width || height !== this.currentSize.height) {
                 this.currentSize = {
@@ -146,13 +150,7 @@ function withSize<T extends Measured>(Wrapping: b.IComponentFactory<T>) {
     }
 }
 
-class T extends b.Component<Measured> {
-    @observable.ref
-    currentSize: WidthHeight = {
-        width: 0,
-        height: 0
-    };
-
+class InHoc extends b.Component<Measured> {
     render() {
         return (
             <div style={{width: "100%"}}>
@@ -164,7 +162,7 @@ class T extends b.Component<Measured> {
     }
 }
 
-export const TestComponent2 = withSize((data) => <T {...data}/>);
+export const TestComponent2 = withSize((data) => <InHoc {...data}/>);
 // export const TestComponent2 = withSize(b.component(T));
 
 interface IData {
@@ -232,6 +230,8 @@ function TestComponent4() {
         </div>
     )
 }
+
+// https://reactjs.org/docs/hooks-intro.html
 
 function Group() {
     return (

@@ -27,13 +27,13 @@ function StateHook() {
 
 // all you need for handling lifecycle
 function EffectHooks() {
-    b.useLayoutEffect(() => {
-        console.log("layoutEffect");
-    }, []);
     b.useEffect(() => {
         console.log("effect");
         // dispose
         return () => console.log("destroy");
+    }, []);
+    b.useLayoutEffect(() => {
+        console.log("layoutEffect");
     }, []);
 
     return (
@@ -78,7 +78,6 @@ interface IData {
     x: number;
 }
 
-// bacha v reactu memoizuje vysledek funkce na zaklade deps, v bobrilu jen invaliduje
 function MemoHook(data: IData): b.IBobrilNode {
     // v podstate ref s invalidaci na zaklade dependenci
     // optimalizace
@@ -127,16 +126,33 @@ function MemoHook(data: IData): b.IBobrilNode {
 // useComputed
 // useObservable
 
+
+
+function useInterval(callback, timeout) {
+    const callbackRef = b.useRef<() => void>();
+    b.useEffect(() => {
+        callbackRef.current = callback;
+    }, [callback]);
+
+    // implement timeout for gotchas
+    b.useEffect(()=> {
+        const intervalId =  setInterval(() => callbackRef.current!(), timeout);
+        return () => clearInterval(intervalId);
+    }, [timeout]);
+}
+
 function Counter() {
     const [count, setCount] = b.useState(0);
     const [timeout, setTimeout] = b.useState(1000);
+    useInterval(() => {
+        setCount(count + 1);
+    }, timeout);
 
-    // implement timeout for gotchas
     return (
         <div>
             {count}
             <div>
-                <label>Timeout for counter:</label><input value={timeout} onChange={setTimeout} type="range" min={100} max={2000} step={100} stepList="steplist"/>
+                <label>Timeout for counter:</label><input value={timeout} onChange={(val) => setTimeout(+val)} type="range" min={100} max={2000} step={100} stepList="steplist"/>
                 <span style={{paddingLeft: 10}}>{timeout}</span>
             </div>
             <div onClick={() => {
