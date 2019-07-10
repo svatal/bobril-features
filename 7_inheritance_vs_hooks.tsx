@@ -12,19 +12,19 @@ type WidthHeight = {
     height: number;
 }
 
-interface Measure {
-    measure(me: b.IBobrilCacheNode): WidthHeight;
+interface Measured {
+    size: WidthHeight;
 }
 
 interface IContext extends b.IBobrilCtx {
     size: WidthHeight;
 }
-// dopsat
+
 const Mixed = b.createComponent({
     render(ctx: IContext, me: b.IBobrilNodeCommon) {
         me.children = (
             <div style={{width: "100%"}}>
-                <h2>Mixin</h2>
+                <h2>Old Mixin</h2>
                 <div>Measured div</div>
                 <div>width: {ctx.size.width}</div>
             </div>
@@ -32,26 +32,25 @@ const Mixed = b.createComponent({
     }
 });
 
-const Oixin = b.createDerivedComponent(Mixed, {
+const OldMixin = b.createDerivedComponent(Mixed, {
     init(ctx: IContext) {
         ctx.size = {
             width: 0,
             height: 0
         };
     },
-    postRender(ctx: IContext, me: b.IBobrilCacheNode): void {
+    postUpdateDomEverytime(ctx: IContext, me: b.IBobrilCacheNode): void {
         const { width, height } = (b.getDomNode(me) as Element).getBoundingClientRect();
-        ctx.size.width = width;
-        ctx.size.height = height;
+        if (ctx.size.width !== width || ctx.size.height !== height) {
+            ctx.size.width = width;
+            ctx.size.height = height;
+            b.invalidate(ctx);
+        }
     }
 });
 
 class Meter extends b.Component  {
-    @observable
-    currentSize: WidthHeight = {
-        width: 0,
-        height: 0
-    };
+    currentSize: WidthHeight;
     postRenderDom() {
         const { width, height } = (b.getDomNode(this.me) as Element).getBoundingClientRect();
         this.currentSize.width = width;
@@ -59,11 +58,12 @@ class Meter extends b.Component  {
     }
 }
 
-// change
 class TestComponent extends b.Component {
-    currentSize: WidthHeight;
-    // same as hoc
-    postRenderDom(): void {}
+    @observable
+    currentSize: WidthHeight  = {
+        width: 0,
+        height: 0
+    };
 
     render() {
         return (
@@ -85,8 +85,8 @@ function applyMixins(derivedCtor: any, baseCtors: any[]) {
     });
 }
 
-function OldMixin() {
-    return <Oixin/>
+function TestOldMixin() {
+    return <OldMixin/>
 }
 
 function Mixin() {
@@ -120,8 +120,8 @@ export class TestComponent1 extends Measure1 {
 }
 
 // HOC
-function withSize<T extends Measure>(Wrapping: b.IComponentFactory<T>) {
-    return class WithEmitterHoc extends b.Component<Omit<T, keyof Measure>>{
+function withSize<T extends Measured>(Wrapping: b.IComponentFactory<T>) {
+    return class WithEmitterHoc extends b.Component<Omit<T, keyof Measured>>{
         // invalidate and measure me not external thing
         currentSize: WidthHeight = {
             width: 0,
@@ -146,30 +146,26 @@ function withSize<T extends Measure>(Wrapping: b.IComponentFactory<T>) {
     }
 }
 
-class T extends b.Component<Measure> {
+class T extends b.Component<Measured> {
     @observable.ref
     currentSize: WidthHeight = {
         width: 0,
         height: 0
     };
 
-    postRenderDom(me: b.IBobrilCacheNode): void {
-        this.currentSize = this.data.measure(me);
-    }
-
     render() {
         return (
             <div style={{width: "100%"}}>
                 <h2>HOC</h2>
                 <div>Measured div</div>
-                <div>width: {this.currentSize.width}</div>
+                <div>width: {this.data.size.width}</div>
             </div>
         )
     }
 }
 
-export const TestComponent2 = withSize(b.component(T));
-export const TestComponentX = withSize((data: Measure) => <T {...data}/>);
+export const TestComponent2 = withSize((data) => <T {...data}/>);
+// export const TestComponent2 = withSize(b.component(T));
 
 interface IData {
     children(size: WidthHeight): b.IBobrilNode;
@@ -197,6 +193,7 @@ export function TestComponent3() {
             <WithSize>
                 {(({width}) =>
                         <div style={{width: "100%"}}>
+                            <h2>Render props</h2>
                             <div>Measured div</div>
                             <div>width: {width}</div>
                         </div>
@@ -229,6 +226,7 @@ function TestComponent4() {
 
     return (
         <div ref={ref} style={{width: "100%"}}>
+            <h2>Hooks</h2>
             <div>Measured div</div>
             <div>width: {width}</div>
         </div>
@@ -238,7 +236,7 @@ function TestComponent4() {
 function Group() {
     return (
         <>
-            <Oixin/>
+            <TestOldMixin/>
             <Mixin/>
             <TestComponent1/>
             <TestComponent2/>
